@@ -9,6 +9,11 @@
 component side) after the failed S3b experiment. This is the **raw 1 MB**
 image, not the `.DigBin` container.
 
+> **Printable briefs for the technician:** `RP500_reflash_brief_PT-BR.pdf`
+> (Portuguese) and `RP500_reflash_brief_EN.pdf` (English). Both include the
+> board photos and the 3.3 V / U19 warnings. The `.bin` images themselves are
+> not in this repository (see the note above).
+
 | | |
 |---|---|
 | File | `stock_1mb.bin` |
