@@ -137,9 +137,11 @@ one. The EPM3032A CPLD is the likely address-decode / chip-select that lets one
    status/ID read, not the IR path.**
 5. **The GSP's two chips are the same `72-1002` ASIC as the RP500's single
    chip** (GSP parts list: qty 2, "IC Audio DNA2 Rev B ASIC 144 pin LQFP";
-   RP500 U25: `72-1002 GREEN`). The "only one chip, unique to this product, has
-   the convolution instructions" hypothesis is **refuted at the part-number
-   level**: there is no GSP-only AudioDNA2 variant.
+   RP500 U25: `72-1002 GREEN`). The BOM specifies **qty 2 of the same Rev B**,
+   so the two GSP chips cannot differ from each other either. The "only one
+   chip, unique to this product, has the convolution instructions" hypothesis
+   is **refuted at the part-number level**: there is no GSP-only AudioDNA2
+   variant, and no within-GSP variant.
 
 ## What this does **not** establish
 
