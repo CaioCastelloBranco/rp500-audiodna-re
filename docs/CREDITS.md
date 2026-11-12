@@ -32,6 +32,13 @@ at any time (`python 04_analysis_scripts/model_credits.py --export ...`).
 | **MiMo v2.6 Flash** (`mimo-v2.6-flash-free`) | opencode | **20** | 1 % | session bring-up and a few early turns |
 | | | **2,022** | 100 % | |
 
+> **2026-11-12 final consolidation.** The two-chip test, the GSP1101
+> parts-list resolution (same `72-1002` AudioDNA2 in both units) and the
+> documentation tidy-up were done by **DeepSeek V4.1 Flash**
+> (`deepseek-v4.1-flash`) in the `D:\OPENCODE\RP500` session. The message
+> counts above are the 2026-11-11 snapshot; this pass is not yet folded into
+> them.
+
 ### Per session
 
 | Session | Directory | Models (messages) |

@@ -4,7 +4,15 @@
 
 **Start here if you are new:** `00_master/PROJECT_STATE.md` (what is done, what is open, what to do next) and `00_master/TOOLCHAIN.md` (every tool, how to restore it, how to run every check). Attribution for the models and tools that produced this work: `00_master/CREDITS.md`.
 
-**Archive date:** 2026-11-11
+**Archive date:** 2026-11-12
+
+> **2026-11-12 update — the two-chip question is settled.** The GSP1101's two
+> DSPs and the RP500's one DSP are the **same `72-1002` AudioDNA2** part (GSP
+> BOM: qty 2 "Audio DNA2 Rev B"; RP500 U25: `72-1002 GREEN`). The "one special
+> chip with convolution" hypothesis is refuted at the part-number level. The
+> only open question is microcode/enablement, and it needs one bench
+> measurement. Read `README.md` §0 (two-minute summary) and
+> `05_evidence/2026-11-12_gsp1101_parts_list.md`.
 
 **Size:** ~220 MB across 10 folders + 334 analysis scripts
 

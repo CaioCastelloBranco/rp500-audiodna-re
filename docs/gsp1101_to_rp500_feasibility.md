@@ -1,6 +1,6 @@
 # GSP1101 IR-Cabinet Feature → RP500 Port: Feasibility Assessment
 
-**Artifacts analyzed:** GSP1101 firmware images (`c48_fw.bin`, `c63_fw.bin`, `gsp1101_fw.bin`), RP500 firmware image (`rp500_fw.bin`), Windows updater executables (`JUpdater Gsp1101vC63.exe`, `JUpdater GSP1101vC48.exe`, `JUserCabUpdater vC59.exe`, `GSPUpdaterV20.exe`), and the `.DigBin` container format.
+**Artifacts analyzed:** GSP1101 firmware images (`c48_fw.bin`, `c63_fw.bin`, `gsp1101_fw.bin`) and older builds (v11–vC20), RP500 firmware image (`rp500_fw.bin`), Windows updater executables (`JUpdater Gsp1101vC63.exe`, `JUpdater GSP1101vC48.exe`, `JUserCabUpdater vC59.exe`, `GSPUpdaterV20.exe`), the `.DigBin` container format, and the **GSP1101 parts list** plus the GNX 2 / GSP 2112 / GSP 2101 / RP50 service manuals (`03_docs/`).
 
 **Tools:** REA (Ghidra 12.1.4 backend) on the Windows PE updaters and the Jcabinet encoder; Python static analysis on the raw 8051 images.
 
@@ -20,7 +20,20 @@
 > (`rp500_storage.md`). Where an older sentence below still reads otherwise, the
 > correction note beside it governs.
 
-(§12 supersedes earlier draft statements about "no IR payload" and "no DSP primitive": the payload is 128 × 32-bit taps, and the IR build added **no** new host→DSP command.)
+> **Status 2026-11-12 — the chip-variant half is settled.** The GSP1101's two
+> DSPs and the RP500's one DSP are the **same `72-1002` AudioDNA2** part (GSP
+> BOM: qty 2 "Audio DNA2 Rev B"; RP500 U25: `72-1002 GREEN`). The firmware does
+> not select between the two GSP chips, and the old `0xFDFC` chip-select claim
+> is corrected in §13.3. So the remaining gate is **microcode/enablement**, not
+> chip identity: can the RP500's `72-1002` be put into the variable-length block
+> mode and made to convolve? That is one bench measurement, not another
+> disassembly. See `05_evidence/2026-11-12_gsp1101_parts_list.md` and
+> `05_evidence/2026-11-12_gsp_two_chip_test.md`.
+
+(§12 corrected two earlier draft statements: the GSP1101's **user-cab record**
+is 128 × 32-bit taps, and the IR build added **no** new host→DSP command.
+§13.10 further corrected the **RP500's** payload: it is a 24-byte parameter
+descriptor, not a coefficient block.)
 
 > **Correction notice (2026-11-11, second re-verification) — the port is *not* a
 > source swap.** §13.4/§13.6/§13.8 are rewritten. The RP500's DSP link does
@@ -931,8 +944,10 @@ read** and **which command byte they latch** into `0xE000`:
 > and the RP500 has **1 × `72-1002`**. "Only one chip, unique to this product,
 > has the convolution instructions" is therefore **refuted**. The GSP's second
 > chip buys capacity (two DSP + two 64 Mbit SDRAM subsystems, `72-0099` ×2),
-> not a different instruction set. The remaining question is microcode /
-> enablement, not chip identity. The board also carries an **EPM3032A CPLD**
+> not a different instruction set. What is *not* refuted is whether the two GSP
+> chips run different microcode; that is still invisible, but it no longer
+> matters for the RP500, whose chip is the same part. The remaining question is
+> microcode / enablement, not chip identity. The board also carries an **EPM3032A CPLD**
 > (`72-0175`), the likely address-decode / chip-select for the two DSPs — which
 > is why the host never emits a DSP-id byte. The sibling BOMs confirm the
 > pattern: GNX 2 = **3 × `72-5433`** (first-gen Atmel AudioDNA), RP50 =

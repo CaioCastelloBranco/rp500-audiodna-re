@@ -3,10 +3,15 @@
 **Objective:** determine whether the DigiTech GSP1101 user-cabinet (IR) feature
 can be ported to the RP500, and build as much of it as the hardware allows.
 
-**Status as of 2026-11-11:** the build → container → updater → bootloader →
+**Status as of 2026-11-12:** the build → container → updater → bootloader →
 device chain is **proven end to end on hardware**, the RP500 firmware is
 **mapped and executable in a simulator**, and the remaining question (can the
 RP500's DSP convolve a user IR?) is now *testable* rather than speculative.
+**The chip-identity half is settled (2026-11-12):** the GSP1101's two DSPs and
+the RP500's one DSP are the **same `72-1002` AudioDNA2** part (GSP BOM: qty 2
+"Audio DNA2 Rev B"; RP500 U25: `72-1002 GREEN`). The only open question is
+microcode/enablement, and it needs one bench measurement — not another
+disassembly.
 
 ---
 
@@ -54,9 +59,11 @@ RP500's DSP convolve a user IR?) is now *testable* rather than speculative.
 | **The RP500's DSP payload is a 24-byte parameter descriptor**, identical in both cabinet banks and immediately followed by code — *not* an IR and *not* cabinet-specific. **There are no factory cabinet IRs**: the factory cabinets are parametric DSP models (a strict 128-tap coefficient-block scan finds zero in every image), so an IR exists only in the **user-cabinet feature**, added to the GSP1101 in firmware C54. | report §13.10, `audit_claims.py` §2, README_FIRST.md (FIR-block scan) |
 | **The RP500's DSP stream has no length limit** — the `0x7FF8` compare is a *stall abort* on the "status did not change" path. Measured: 118 650 bytes and still going with an always-acknowledging DSP; the first 24 are the descriptor, the rest is code. | report §13.10, `05_evidence/2026-11-11_ucsim_dspstream_long.md` |
 | A **second** path writes `0xD070`: a 113-byte DSP configuration block (identical in banks 14/15) copied into DSP registers `0xD000`–`0xD070`, skipping `0xD059`. | `audit_claims.py` §1b |
-| **The GSP1101 has a second, variable-length XRAM-sourced DSP path** (32 streams, `0xF5` terminator) and the user IR is staged into it (XRAM `0x1483+` → `0x2603+`). The RP-series has **none** of it. | report §13.10, `audit_claims.py` §3 |
-| The GSP's XRAM path **predates** the IR feature (C48 already has 32 such streams) — the feature reused an existing path rather than inventing a DSP primitive | report §14.2 |
+| **The GSP1101 has a second, variable-length XRAM-sourced DSP path** (a `0xF5`-terminated stream; 32 store sites = 2 handlers × 16 code banks) and the user IR is staged into it (XRAM `0x1483+` → `0x2603+`). The RP-series has **none** of it. | report §13.10, `audit_claims.py` §3, `two_chip_test.py` |
+| The GSP's XRAM path **predates** the IR feature (the oldest build, v11, already has the same two handlers with moved cells) — the feature reused an existing path rather than inventing a DSP primitive | report §14.2, `two_chip_test.py` |
 | A "downgrade" to an older revision is filtered out by `VersionComparer.IsNewer`; the revision must be **newer**, hence 2.1 | roadmap "Updater integration" |
+| **The GSP's two AudioDNA2 chips are the same part as the RP500's single chip** — GSP BOM: 2 × `72-1002` "Audio DNA2 Rev B ASIC 144 pin LQFP"; RP500 U25: `72-1002 GREEN`. The "only one chip, unique to this product, has the convolution instructions" hypothesis is **refuted at the part-number level**; the GSP's second chip is capacity (two DSP + two SDRAM subsystems). | `05_evidence/2026-11-12_gsp1101_parts_list.md` |
+| **The GSP firmware does not address its two chips independently** — no chip-select in the IR path; `0xFDFC` is RP500-only; the only GSP-only two-select access is `0xE400` ← `0x40`/`0x80` + read `0xEC40` (status/ID) | `05_evidence/2026-11-12_gsp_two_chip_test.md`, `two_chip_test.py` |
 
 ## 3. The open questions (in priority order)
 
@@ -66,11 +73,14 @@ RP500's DSP convolve a user IR?) is now *testable* rather than speculative.
    parametric cab models cannot render a user IR". The RP500's firmware only
    ever asks its DSP for a **fixed 24-byte parameter descriptor**, so the
    capability cannot be read off the image. Evidence that it exists: the
-   GSP1101 — same chip family, same host interface (**23 addresses common to
-   all three images**, including the whole handshake set `0xD01E/1F/20,
-   0xD034, 0xD050, 0xD05A/5B, 0xD066/69/6D/6E/6F, 0xD070` and
-   `0xE000/0xE200/0xE400/0xE800`) — does exactly that on 32 streams with a
-   `0xF5` terminator. It has to be **measured**. (report §13.10)
+   GSP1101 — **same `72-1002` AudioDNA2 ASIC**, same host interface (**23
+   addresses common to all three images**, including the whole handshake set
+   `0xD01E/1F/20, 0xD034, 0xD050, 0xD05A/5B, 0xD066/69/6D/6E/6F, 0xD070` and
+   `0xE000/0xE200/0xE400/0xE800`) — does exactly that on a variable-length
+   `0xF5`-terminated stream (32 store sites = 2 handlers × 16 code banks).
+   **The parts list (2026-11-12) removes the chip-variant doubt:** both units
+   use the same `72-1002`. It has to be **measured**. (report §13.10,
+   `05_evidence/2026-11-12_gsp1101_parts_list.md`)
 2. **Where do user cabs live on the RP500?** — **PARTLY CLOSED**: not in the firmware flash (1 MB, fully rewritten) and not in XRAM (no store). The **protocol** is closed — the RP500 speaks gdigi's preset protocol, and "save preset" is `MOVE_PRESET` (0x39). The **physical store** is still open; the leading candidate is a serial (SPI/I²C) device, which the XDATA map cannot see (S2c).
 3. **Can firmware read its own flash?** — moot: the flash is fully rewritten by an update and holds no user data.
 4. **One IR or two?** — **settled by the manual** (C54 release notes, §IV):

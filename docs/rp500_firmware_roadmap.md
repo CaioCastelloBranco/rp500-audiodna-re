@@ -94,8 +94,10 @@ models cannot render a user IR". Evidence for both: the RP500 and the GSP share
 **23 addresses** in the host windows (RP500 v2.0, GSP C48, GSP C63) including
 the complete handshake set — `0xD01E/1F/20, 0xD034, 0xD050, 0xD05A/5B,
 0xD066/69/6D/6E/6F, 0xD070` and `0xE000/0xE200/0xE400/0xE800` — and the GSP
-convolves with user IRs on the same part. But the RP500 firmware never
-exercises that path, so **both halves have to be measured** (S3).
+convolves with user IRs on the same part. The **parts list (2026-11-12)
+confirms both units use the same `72-1002` AudioDNA2** (GSP: qty 2; RP500:
+qty 1), so that is now chip-identity fact, not inference. The RP500 firmware
+still never exercises the path, so **both halves have to be measured** (S3).
 
 ---
 

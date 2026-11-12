@@ -13,6 +13,14 @@ image against the GSP images shows:
 > separate, variable-length, XRAM-sourced DSP stream** that the RP500 firmware
 > does not have. The RP500 therefore needs that path **added**, not patched.
 
+> **2026-11-12 update — the chip-identity half is settled.** The GSP1101's two
+> DSPs and the RP500's one DSP are the **same `72-1002` AudioDNA2** part (GSP
+> BOM: qty 2 "Audio DNA2 Rev B"; RP500 U25: `72-1002 GREEN`). The firmware does
+> not select between the two GSP chips, and the GSP's second chip is capacity,
+> not a different instruction set. The remaining gate is
+> **microcode/enablement**, not chip identity. See row 6d and
+> `05_evidence/2026-11-12_gsp1101_parts_list.md`.
+
 Everything below is re-derived from the artifacts by
 `04_analysis_scripts/audit_claims.py` (111/111) and `verify_all.py` (253/253);
 nothing is carried over from memory.
