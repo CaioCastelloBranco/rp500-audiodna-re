@@ -763,9 +763,10 @@ extraction (the interleaved 8-byte-descriptor container).
    firmware.** The 113-byte init block is byte-identical, and the stream
    protocol is unchanged. This is independent confirmation of §12.2's "no new
    DSP command".
-3. **The variable-length channel predates the IR feature.** V20 (2006) already
-   has all 32 XRAM-sourced stores and the `0xF5` terminator. The IR build did
-   not create the primitive; it started using it for cabinets.
+3. **The variable-length channel predates the IR feature.** The oldest build
+   (v11) already has all 32 XRAM-sourced stores (2 handlers × 16 code banks)
+   and the `0xF5` terminator, with only the XRAM scratch addresses moved. The
+   IR build did not create the primitive; it started using it for cabinets.
 
 **What it does not settle.** The GSP1101 has **two** AudioDNA2 chips; the RP500
 has **one**. Their masks/part numbers were never compared (RP500 U25 reads
@@ -774,7 +775,11 @@ corpus). The RP500 host also never sends a variable-length block, so the DSP's
 acceptance of one is unobserved. The block comparison therefore **supports**
 the "capability pre-existed, C63 added only the order" hypothesis — it removes
 the firmware-side change — but it cannot confirm the chip-level capability. That
-still requires a bus capture or the DSP microcode.
+still requires a bus capture or the DSP microcode. A 2026-11-12 static test of
+the two-chip question found **no chip-select in the IR path**: both handlers
+read one XRAM stream and write one `0xD070` port, and the only GSP-only
+two-select access (`0xE400` ← `0x40`/`0x80` + read `0xEC40`) is a status/ID
+path. See §13.3 and `05_evidence/2026-11-12_gsp_two_chip_test.md`.
 
 ---
 
@@ -905,9 +910,18 @@ read** and **which command byte they latch** into `0xE000`:
 > cabinet-independent **DSP parameter descriptors**, not IR payloads and not
 > left/right channels. See §13.10.
 
-The GSP1101's second chip is selected the same way the RP500 selects its
-second coefficient set — through the command byte staged in `0xFDFC` (bits
-`0x10`/`0x20` are toggled around the writes to `0xE000`).
+> **Correction (2026-11-12): the `0xFDFC` claim above was wrong.** `0xFDFC` is
+> **RP500-only** (49 references; **zero** in every GSP1101 build from v11 to
+> C63). The GSP does not select its second chip through it. The GSP's only
+> two-select access is `0xE400` ← `0x40`/`0x80` paired with reads of `0xEC40`
+> (a status/ID path, not the IR path), and the user-IR stream itself writes only
+> `0xD070` and the `0xE000` flow-control byte. Both of the GSP's "32 XRAM
+> stores" are **2 interrupt handlers × 16 code banks**, not two chips. See
+> `05_evidence/2026-11-12_gsp_two_chip_test.md`.
+>
+> So the firmware **does not address the two chips independently**. Whether
+> only one of them carries the convolution microcode is invisible to static
+> analysis; the hypothesis remains possible, not demonstrated.
 
 ### 13.4 The RP500 streams a 24-byte parameter descriptor out of its own code space
 
@@ -982,8 +996,8 @@ part of the 1 MB firmware image.
 
 | Question | Answer |
 |---|---|
-| Can the RP500's DSP take an arbitrary coefficient block? | **Unknown.** The RP500 streams a fixed 24-byte parameter descriptor to the DSP, and nothing in its firmware asks the DSP for a variable-length block. The GSP does exactly that (32 XRAM-sourced streams with a `0xF5` terminator), on the same chip family and the same register map — so the capability probably exists, but it must be **measured**. |
-| Is the GSP's user-cab load code portable verbatim? | **No** — it feeds **two physical AudioDNA chips** from a user-data flash window, while the RP500 has **one** DSP. Porting the *code* is the wrong move. |
+| Can the RP500's DSP take an arbitrary coefficient block? | **Unknown.** The RP500 streams a fixed 24-byte parameter descriptor to the DSP, and nothing in its firmware asks the DSP for a variable-length block. The GSP does exactly that (a variable-length XRAM-sourced stream with a `0xF5` terminator; 32 store sites = 2 handlers × 16 code banks), on the same chip family and the same register map — so the capability probably exists, but it must be **measured**. |
+| Is the GSP's user-cab load code portable verbatim? | **No** — the GSP host writes one `0xD070` stream, but the GSP board carries **two physical AudioDNA chips** and the firmware does not select between them; the RP500 has **one** DSP and no such stream. Porting the *code* is the wrong move. |
 | Is the *feature* portable? | Yes, in four pieces: (a) a place to store the record, (b) a way to read it back, (c) a way to stage it into XRAM, (d) **a variable-length terminated stream to the DSP** — (d) does not exist on the RP500 and has to be added. |
 | What is still unknown | (i) whether the RP500's AudioDNA2 accepts a variable-length block (the gate); (ii) whether the RP500's *user-data* flash (where presets live) is writable and addressable from firmware code; (iii) whether the GSP streams the 2048-byte record or only its 512-byte coefficient part. |
 
@@ -1000,7 +1014,7 @@ Three facts fall out, and all three simplify the port:
 
 | Manual fact | Consequence |
 |---|---|
-| **Mono.** Only the left channel is used, and **the same IR is applied to both outputs**. | The user IR is *one* block, duplicated to both channels. On the RP500 (one DSP) no stereo handling is needed either way — the descriptor is cabinet-independent and the user record is a single block. It also means the GSP's two AudioDNA chips receive *identical* data, which is why their two stream sites look symmetric. |
+| **Mono.** Only the left channel is used, and **the same IR is applied to both outputs**. | The user IR is *one* block, duplicated to both channels. On the RP500 (one DSP) no stereo handling is needed either way — the descriptor is cabinet-independent and the user record is a single block. It also means that *if* the GSP's two chips receive the IR, they receive the same mono block. The firmware's "two stream sites" are **not** evidence of this: they are two interrupt handlers replicated across 16 code banks, both reading one XRAM stream and writing one port `0xD070` (`05_evidence/2026-11-12_gsp_two_chip_test.md`). |
 | **"remove any 0's at the beginning"** | The IR is written at the **head of a fixed-length coefficient block**; leading zeros simply delay the response. The DSP is therefore **not** told a new IR length — the user IR is the first 128 samples of the block, with zeros after. No DSP reconfiguration is required. (There are no *factory* IRs to share a block with — factory cabinets are parametric models; the IR is the added user-cabinet feature.) |
 | "Set the user preset to one of the user cabinet positions. Then start the Jcabinet updater." | The upload is **targeted at the currently selected slot** — the device must be positioned on a user cab before the transfer. So the port needs a UI slot to aim at (L4), exactly as the GSP has. |
 
@@ -1128,13 +1142,23 @@ the user IR lives.**
 
 | Fact | C48 | C63 |
 |---|---|---|
-| XRAM-sourced stores to `0xD070` | **32** (2 per bank × 16) | **32** |
+| XRAM-sourced stores to `0xD070` | **32** = **2 handlers × 16 code banks** (one stream, not two chips) | **32** |
 | source base | `0x2445 + index` | `0x2603 + index` |
 | index cell | XRAM `0x233F` | XRAM `0x24FD` |
 | length cell | XRAM `0x2546` | XRAM `0x2704` |
 | terminator | `0xF5` written to `0xD070` | same |
 | IR staging | — | XRAM `0x1483+` → XRAM `0x2603+`, count in XRAM `0x14C3` (routine at bank 15 `0xD7D1`) |
 | code-space block | 16 bytes at `0x31F3`/`0x3666` | same |
+
+> **Correction (2026-11-12):** the 32 XRAM sites are the **same two interrupt
+> handlers replicated across the 16 code banks**, not two chips. Both handlers
+> read the same source base and write the same `0xD070` port; neither touches
+> `0xE200`, `0xE400`, or any other chip-select register. The transport is
+> already present in the oldest build (v11, cells `0x2164`/`0x1F5D`/`0x2B4F`,
+> source `0x2063+index`), so C48/C63 added the host-side feature, not the DSP
+> path. The only GSP-only two-select access is `0xE400` ← `0x40`/`0x80` +
+> read `0xEC40`, a status/ID path, not the IR path. See
+> `05_evidence/2026-11-12_gsp_two_chip_test.md`.
 
 The GSP's 16-byte code-space block **shares 8 bytes** with the RP500's 24-byte
 descriptor (`01 01 0c 50 0a 20 01 00`) — same platform routine, different

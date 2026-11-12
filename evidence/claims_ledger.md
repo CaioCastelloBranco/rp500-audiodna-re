@@ -140,4 +140,23 @@ Evidence:
 - C63 bank 15 0xD7EF..0xD80A (the copy): 74 83 2F F5 82 E4 34 14 F5 83 E0 FF 90 27 04 E0 24 03 F5 82 E4 34 26 F5 83 EF F0 90
 -    74 83 = MOV A,#83h ; 2f = ADD A,R7 ; f5 82/e4/34 14/f5 83 = DPTR = 0x1483+index (R7 = XRAM[0x14C5]) ; e0 = MOVX A,@DPTR (read) ; f0 = MOVX @DPTR,A (write to 0x2603+index)
 -    the destination index/length cell is XRAM[0x2704] and the copy count is XRAM[0x14C3]; the stream compares its index XRAM[0x24FD] against XRAM[0x2704]
+-    **correction (2026-11-12):** the "32 XRAM-sourced stores" are **2 interrupt handlers × 16 code banks** (both handlers read the same source/index/length and write the same `0xD070` port), not 32 independent streams and not two chips - see `2026-11-12_gsp_two_chip_test.md`
+
+## C8 - Does the GSP1101 firmware address its two AudioDNA2 chips independently? (NEW)
+
+**Old claim.** the GSP selects its second chip through a command byte staged in `0xFDFC` (doc §13.3)
+
+**New claim.** the firmware does **not** address the chips independently. `0xFDFC` is RP500-only (49 refs; **0** in every GSP build v11→C63). The IR path writes one `0xD070` port and one `0xE000` flow-control byte; the only GSP-only two-select access is `0xE400` ← `0x40`/`0x80` + read `0xEC40`, a status/ID path. The transport predates user cabs: the oldest build (v11) already has it with cells `0x2164`/`0x1F5D`/`0x2B4F`, source `0x2063+index`.
+
+Old claim holds: **False**   New claim holds: **True**
+
+Evidence:
+
+- `0xFDFC` refs: GSP v11/v20/C48/C63 = 0/0/0/0; RP500 = 49
+- `0xD070` stores: every GSP build = 34 (2 code-space + 32 XRAM = 2 handlers × 16 banks); RP500 = 2 (2 code-space + 0 XRAM)
+- both C63 handlers reference `0x2704`, `0x24FD`, `0x2705`, `0x327A`; neither references `0xE200` or `0xE400`
+- `0xE400` immediate values: GSP = {0x01, 0x40, 0x80}; RP500 = none
+- `0xEC40` refs: GSP = 5; RP500 = 0
+- RP500 board photo: one AudioDNA2 (U25, `72-1002 GREEN`), one SDRAM (U24), one flash (U26); no second DSP footprint
+- what it does **not** settle: whether the two GSP chips differ in microcode, and whether `0xD070` is broadcast or hardware-muxed to them - both require a bus capture or the DSP microcode
 
