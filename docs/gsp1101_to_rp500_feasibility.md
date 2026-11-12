@@ -698,7 +698,7 @@ Because no new command appeared, exactly one of these must be true:
 1. **The DSP microcode changed** between C48 and C63 to add a raw-coefficient cab mode that reuses the existing command/mailbox channel (invisible to the 8051 side), or
 2. **The mode already existed** and C48 simply had no UI/storage for it.
 
-Static analysis of the 8051 images cannot separate them, because the DSP's own program is on the far side of the link. (The V20→C63 byte diff is ~90 %, so a silent microcode change is entirely possible.)
+Static analysis of the 8051 images cannot separate them, because the DSP's own program is on the far side of the link. (The V20→C63 byte diff is ~90 %, so a silent microcode change is entirely possible.) **§12.7 adds a byte-level comparison of the two blocks the host sends to the DSP: it removes the firmware-side change (C48→C63 is byte-identical in the 113-byte init block) but still cannot see the microcode itself.**
 
 ### 12.5 The RP500 link is the *same family* but a *different implementation*
 
@@ -732,6 +732,49 @@ channel that the RP500 firmware does not implement** (§13.10).
 | **RP500 DSP renders 128 taps** | **Unproven — the only gate (G1 + G2)** |
 
 A pure 8051-firmware patch can add the menu entries, the 10 slots, the transport, the XRAM staging and the terminated DSP stream, and it can convert a WAV exactly as DigiTech's tool does. It **cannot** make the RP500 produce a user IR unless that DSP accepts a variable-length block **and convolves with it**. That is now a single, testable question rather than an open-ended unknown. *(Revised 2026-11-11: "the flash records" and "the `USER_CAB` SysEx handler" were both withdrawn — see the rows above.)*
+
+### 12.7 Byte-level comparison of the DSP-facing blocks (2026-11-12)
+
+§12.4 left two possibilities: the DSP microcode changed at C63, or the capability
+pre-existed. A direct byte comparison of the two blocks the host actually sends
+to the DSP narrows this without needing the microcode. Full data:
+`05_evidence/2026-11-12_dsp_block_comparison.md`.
+
+**Method.** The code-space stream routine was located in each image by its
+instruction shape (`MOVC A,@A+DPTR` → `MOV DPTR,#D070` → `MOVX @DPTR,A`), and
+its source-base constant read out of the preceding `ADD A,#lo` / `MOV A,#hi`.
+The 113-byte register-init block was located by the `0xD000+index` copy loop
+(limit `0x71`, skip `0x59`). C48/C63 were compared after `payload16()`
+extraction (the interleaved 8-byte-descriptor container).
+
+| Block | RP500 vs V20 | C48 vs C63 | result |
+|---|---|---|---|
+| code-space stream routine | — | — | **instruction-identical**; only counter XRAM and source base differ |
+| XRAM variable-length channel | **0 vs 32 sites** | 32 vs 32 | present in V20 (2006), absent from the RP500 |
+| 113-byte DSP register init | **91/113 (80.5 %)** | **113/113 (100 %)** | 91 bytes identical; 22 device-specific bytes at `0x20–0x37`, `0x5C`, `0x5E`, `0x63`, `0x66` |
+| 24-byte stream descriptor | **17/24** | identical | the entire 15-byte body is shared; 7 device-specific bytes |
+
+**What it settles.**
+
+1. The host↔DSP interface is the **same family and largely the same register
+   map**: the same stream loop, the same `0xD070`/`0xD06E` ports, and 91 of the
+   113 init bytes literally identical.
+2. **C48 → C63 changed nothing in the DSP configuration that is visible in
+   firmware.** The 113-byte init block is byte-identical, and the stream
+   protocol is unchanged. This is independent confirmation of §12.2's "no new
+   DSP command".
+3. **The variable-length channel predates the IR feature.** V20 (2006) already
+   has all 32 XRAM-sourced stores and the `0xF5` terminator. The IR build did
+   not create the primitive; it started using it for cabinets.
+
+**What it does not settle.** The GSP1101 has **two** AudioDNA2 chips; the RP500
+has **one**. Their masks/part numbers were never compared (RP500 U25 reads
+`72-1002 GREEN / 7169170 / 1012 KOREA`; no GSP board photograph exists in the
+corpus). The RP500 host also never sends a variable-length block, so the DSP's
+acceptance of one is unobserved. The block comparison therefore **supports**
+the "capability pre-existed, C63 added only the order" hypothesis — it removes
+the firmware-side change — but it cannot confirm the chip-level capability. That
+still requires a bus capture or the DSP microcode.
 
 ---
 
