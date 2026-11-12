@@ -99,7 +99,7 @@ Within the two C63 IR handlers:
 The command byte is staged in XRAM `0x327A` and only has bits `0x40`/`0x80`
 set/cleared around it. Those are transfer handshake bits, not a chip field.
 
-## 6. Hardware
+## 6. Hardware — the parts list answers the chip-identity question
 
 The RP500 board photograph
 (`05_evidence/board/02_dsp_audioDNA2_sdram_flash.jpg`) shows **one** AudioDNA2
@@ -107,8 +107,20 @@ The RP500 board photograph
 `K4S641632N-LC75`), and one firmware flash (U26). There is no second DSP
 footprint.
 
-No GSP1101 board photograph exists in the corpus, so the GSP's two chips cannot
-be identified by part number.
+The GSP1101 parts list (`03_docs/GSP1101 parts list.docx`, 08/31/2007) lists:
+
+| Qty | Part | Description |
+|---|---|---|
+| **2** | **`72-1002`** | **IC Audio DNA2 Rev B ASIC 144 pin LQFP** |
+| 2 | `72-0099` | IC 64 Mbit SDRAM 4Mbx16 7.5 ns TSOP-54 |
+| 1 | `72-0175-00V1` | IC CPLD EPM3032A TQFP44 |
+| 1 | `72-0089-06V1` | IC 16 Mbit 3.3 V flash, "GSP1101 OS" |
+
+So the GSP's two chips are **2 × `72-1002`** — the **same base part** as the
+RP500's single U25. The GSP is two complete DSP + SDRAM subsystems; the RP500 is
+one. The EPM3032A CPLD is the likely address-decode / chip-select that lets one
+8051 drive two DSPs without an explicit DSP-id byte. See
+`05_evidence/2026-11-12_gsp1101_parts_list.md`.
 
 ---
 
@@ -123,40 +135,53 @@ be identified by part number.
 3. **`0xFDFC` is not a GSP chip-select.** It is RP500-only; doc §13.3 was wrong.
 4. **The only GSP-only two-select path is `0xE400`/`0xEC40`, and it is a
    status/ID read, not the IR path.**
+5. **The GSP's two chips are the same `72-1002` ASIC as the RP500's single
+   chip** (GSP parts list: qty 2, "IC Audio DNA2 Rev B ASIC 144 pin LQFP";
+   RP500 U25: `72-1002 GREEN`). The "only one chip, unique to this product, has
+   the convolution instructions" hypothesis is **refuted at the part-number
+   level**: there is no GSP-only AudioDNA2 variant.
 
 ## What this does **not** establish
 
-- It does **not** prove the two GSP chips are identical, or that only one has
-  convolution instructions. The DSP microcode is not in the 8051 image; the
-  firmware cannot reveal it.
-- It does **not** prove the IR is broadcast to both chips. The host writes one
-  port; whether the board fans that out to both chips, or a hardware mux routes
-  it to one, is invisible to static analysis.
-- It does **not** settle whether the RP500's `72-1002` chip is the same part as
-  either GSP chip.
+- The **DSP microcode** is still not in any artifact. The same ASIC can run
+  different microcode, and the firmware image does not contain (or clearly
+  load) a convolution program.
+- Whether the **EPM3032A CPLD** routes `0xD070` to one DSP, both, or a selected
+  one. That is in the schematic / CPLD netlist, not the BOM.
+- Whether the RP500's **`72-1002 GREEN`** is the same silicon revision as the
+  GSP's **`72-1002 Rev B`**. The part number is identical; a revision difference
+  would not normally *remove* an instruction.
 
-## The hypothesis, honestly stated
+## The hypothesis, now
 
-The two-chip hypothesis is **possible and not refuted**, but **no static
-evidence supports it**. The firmware is consistent with either arrangement:
+The chip-identity half is settled: **the GSP's two DSPs are the same ASIC part
+as the RP500's one DSP.** The remaining half is microcode / enablement, and the
+firmware is consistent with either:
 
-- **Both chips convolve** (IR broadcast / per-output routing), or
-- **One chip convolves** and the other does amp/effects work.
+- **Both GSP chips run the same convolution-capable microcode** (IR broadcast /
+  per-output routing), or
+- **The second chip is extra capacity** for amp/effects, with the same
+  instruction set.
 
-The C63 release notes add one relevant fact: user cabs "don't come out the XLR
-outputs unless you have the option turned on." If the two chips are the two
-output paths, then enabling user cabs on XLR would require the XLR chip to
-convolve too — which would argue *against* "only one chip can." If instead one
-chip is amp/effects and the other is cab/mic, the hypothesis survives. The
-firmware does not distinguish these mappings.
+Because the ASIC part is identical, the RP500's single chip has the same
+*hardware* potential. The open question is whether its firmware can load or
+activate a convolution program — not whether it has a different, convolution-less
+chip.
 
-## What would settle it
+The C63 release notes still add the useful fact that user cabs "don't come out
+the XLR outputs unless you have the option turned on" — a per-output routing
+choice, consistent with either mapping.
 
-1. A GSP1101 board photograph, to compare its two AudioDNA2 part markings
-   against the RP500's `72-1002 GREEN`.
-2. A logic-analyzer capture of the GSP host↔DSP bus during a user-cab load, to
-   see whether `0xD070` traffic reaches one chip or both.
-3. The AudioDNA2 microcode/ISA (not present in any artifact).
+## What would settle the rest
 
-Until one of those exists, the correct statement is: **the RP500 port's gate is
-unchanged — "not demonstrated," not "impossible."**
+1. The **AudioDNA2 microcode / ISA** (not present in any artifact) — the decisive
+   unknown.
+2. A **logic-analyzer capture** of the GSP host↔DSP bus during a user-cab load,
+   to see whether `0xD070` traffic reaches one chip or both and what the CPLD
+   does.
+3. The **GSP1101 schematic / CPLD netlist**, to see how the EPM3032A maps the two
+   DSPs.
+
+Until then, the correct statement is: **the RP500 port's gate is unchanged and
+narrower — "not demonstrated," not "impossible."** The parts list removes the
+chip-variant doubt; the microcode doubt remains.

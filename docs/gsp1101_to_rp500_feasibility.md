@@ -923,6 +923,23 @@ read** and **which command byte they latch** into `0xE000`:
 > only one of them carries the convolution microcode is invisible to static
 > analysis; the hypothesis remains possible, not demonstrated.
 
+> **Resolved at the part-number level (2026-11-12).** The GSP1101 parts list
+> (`03_docs/GSP1101 parts list.docx`, 08/31/2007) lists
+> `72-1002 | B | 2 | IC Audio DNA2 Rev B ASIC 144 pin LQFP`. The RP500's U25 is
+> the **same base part `72-1002`** (marked `72-1002 GREEN`). So the two units
+> do **not** use different AudioDNA2 variants: the GSP has **2 × `72-1002`**
+> and the RP500 has **1 × `72-1002`**. "Only one chip, unique to this product,
+> has the convolution instructions" is therefore **refuted**. The GSP's second
+> chip buys capacity (two DSP + two 64 Mbit SDRAM subsystems, `72-0099` ×2),
+> not a different instruction set. The remaining question is microcode /
+> enablement, not chip identity. The board also carries an **EPM3032A CPLD**
+> (`72-0175`), the likely address-decode / chip-select for the two DSPs — which
+> is why the host never emits a DSP-id byte. The sibling BOMs confirm the
+> pattern: GNX 2 = **3 × `72-5433`** (first-gen Atmel AudioDNA), RP50 =
+> **1 × `72-5433`**, GSP1101 = **2 × `72-1002`**, RP500 = **1 × `72-1002`** —
+> the DSP count is a tier/capacity choice, not a feature flag. See
+> `05_evidence/2026-11-12_gsp1101_parts_list.md`.
+
 ### 13.4 The RP500 streams a 24-byte parameter descriptor out of its own code space
 
 RP500 bank 15, `0xBE97`:

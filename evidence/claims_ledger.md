@@ -158,5 +158,6 @@ Evidence:
 - `0xE400` immediate values: GSP = {0x01, 0x40, 0x80}; RP500 = none
 - `0xEC40` refs: GSP = 5; RP500 = 0
 - RP500 board photo: one AudioDNA2 (U25, `72-1002 GREEN`), one SDRAM (U24), one flash (U26); no second DSP footprint
-- what it does **not** settle: whether the two GSP chips differ in microcode, and whether `0xD070` is broadcast or hardware-muxed to them - both require a bus capture or the DSP microcode
+- **parts-list resolution (2026-11-12):** the GSP1101 BOM lists **2 × `72-1002`** "IC Audio DNA2 Rev B ASIC 144 pin LQFP"; the RP500 U25 is the **same base part `72-1002`** (marked GREEN). The sibling BOMs give the lineage: GNX 2 = 3 × `72-5433` (first-gen AudioDNA), RP50 = 1 × `72-5433`, GSP1101 = 2 × `72-1002`, RP500 = 1 × `72-1002`. So "only one chip, unique to this product, has convolution instructions" is **refuted at the part-number level**; the DSP count is a tier/capacity choice. See `2026-11-12_gsp1101_parts_list.md`
+- what it does **not** settle: the DSP microcode (not in any artifact), and whether the EPM3032A CPLD broadcasts `0xD070` to both chips or selects one - both require a bus capture, the schematic/CPLD netlist, or the DSP microcode
 
