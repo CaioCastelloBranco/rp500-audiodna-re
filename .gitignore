@@ -1,0 +1,15 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Editor / OS
+*.swp
+*~
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Scratch
+*.tmp
+scratch/

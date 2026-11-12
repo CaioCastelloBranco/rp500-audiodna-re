@@ -1,0 +1,134 @@
+﻿{
+  "source": "%USERPROFILE%\\.local\\share\\opencode\\opencode.db",
+  "note": "per-message model attribution from the OpenCode session database; regenerate with model_credits.py",
+  "total": {
+    "opencode/crouton-alpha-free": 72,
+    "opencode/mimo-v2.6-flash-free": 20,
+    "opencode/deepseek-v4.1-flash-free": 767,
+    "opencode/longcat-2.5-free": 177,
+    "opencode/nemotron-3.5-super-vl-free": 201,
+    "opencode/nemotron-3.5-lightning-free": 140,
+    "opencode/flint-40b-free": 37,
+    "opencode/minimax-m3.1-flash-free": 553,
+    "opencode/glm-5.3-flash-free": 55
+  },
+  "variants": {
+    "opencode/crouton-alpha-free (high)": 72,
+    "opencode/mimo-v2.6-flash-free (default)": 20,
+    "opencode/deepseek-v4.1-flash-free (default)": 767,
+    "opencode/longcat-2.5-free (default)": 177,
+    "opencode/nemotron-3.5-super-vl-free (default)": 201,
+    "opencode/nemotron-3.5-lightning-free (default)": 140,
+    "opencode/flint-40b-free (high)": 37,
+    "opencode/minimax-m3.1-flash-free (default)": 553,
+    "opencode/glm-5.3-flash-free (default)": 55
+  },
+  "tokens": {
+    "opencode/crouton-alpha-free": 3530073,
+    "opencode/mimo-v2.6-flash-free": 87433,
+    "opencode/deepseek-v4.1-flash-free": 3106492,
+    "opencode/longcat-2.5-free": 546043,
+    "opencode/nemotron-3.5-super-vl-free": 2360150,
+    "opencode/nemotron-3.5-lightning-free": 439421,
+    "opencode/flint-40b-free": 999638,
+    "opencode/minimax-m3.1-flash-free": 1561480,
+    "opencode/glm-5.3-flash-free": 171134
+  },
+  "sessions": [
+    {
+      "id": "ses_e3df340e1ffeI3PoTyNyiJ6oa8",
+      "title": "Carregamento do REA MCP",
+      "directory": "D:/",
+      "when": "2026-11-09 17:42",
+      "models": {
+        "opencode/crouton-alpha-free": 7
+      },
+      "tokens": {
+        "opencode/crouton-alpha-free": 37476
+      },
+      "is_project": false
+    },
+    {
+      "id": "ses_e3ded8b95ffehzzmeIALAFQwXO",
+      "title": "Greeting",
+      "directory": "D:/",
+      "when": "2026-11-09 17:49",
+      "models": {
+        "opencode/crouton-alpha-free": 11,
+        "opencode/mimo-v2.6-flash-free": 3
+      },
+      "tokens": {
+        "opencode/crouton-alpha-free": 101180,
+        "opencode/mimo-v2.6-flash-free": 19717
+      },
+      "is_project": false
+    },
+    {
+      "id": "ses_e3de23f5bffeP51vBzClLHWYIU",
+      "title": "Check rea status",
+      "directory": "D:/",
+      "when": "2026-11-09 18:01",
+      "models": {
+        "opencode/mimo-v2.6-flash-free": 15,
+        "opencode/crouton-alpha-free": 54,
+        "opencode/deepseek-v4.1-flash-free": 462,
+        "opencode/longcat-2.5-free": 112,
+        "opencode/nemotron-3.5-super-vl-free": 63
+      },
+      "tokens": {
+        "opencode/mimo-v2.6-flash-free": 67716,
+        "opencode/crouton-alpha-free": 3391417,
+        "opencode/deepseek-v4.1-flash-free": 2234082,
+        "opencode/longcat-2.5-free": 347745,
+        "opencode/nemotron-3.5-super-vl-free": 1067590
+      },
+      "is_project": false
+    },
+    {
+      "id": "ses_e39720e5cffex8WjuxjGbgvB4L",
+      "title": "Project folder lost pc",
+      "directory": "<temp>/opencode",
+      "when": "2026-11-10 14:42",
+      "models": {
+        "opencode/nemotron-3.5-lightning-free": 140,
+        "opencode/mimo-v2.6-flash-free": 2,
+        "opencode/flint-40b-free": 31,
+        "opencode/nemotron-3.5-super-vl-free": 61,
+        "opencode/minimax-m3.1-flash-free": 82,
+        "opencode/glm-5.3-flash-free": 54
+      },
+      "tokens": {
+        "opencode/nemotron-3.5-lightning-free": 439421,
+        "opencode/mimo-v2.6-flash-free": 0,
+        "opencode/flint-40b-free": 675560,
+        "opencode/nemotron-3.5-super-vl-free": 778423,
+        "opencode/minimax-m3.1-flash-free": 326128,
+        "opencode/glm-5.3-flash-free": 171134
+      },
+      "is_project": false
+    },
+    {
+      "id": "ses_e389a1c26ffeVjlBwDHwe26q8G",
+      "title": "gsp1101 IR port to RP500",
+      "directory": "D:/OPENCODE/RP500",
+      "when": "2026-11-10 18:38",
+      "models": {
+        "opencode/nemotron-3.5-super-vl-free": 77,
+        "opencode/deepseek-v4.1-flash-free": 305,
+        "opencode/longcat-2.5-free": 65,
+        "opencode/flint-40b-free": 6,
+        "opencode/glm-5.3-flash-free": 1,
+        "opencode/minimax-m3.1-flash-free": 471
+      },
+      "tokens": {
+        "opencode/nemotron-3.5-super-vl-free": 514137,
+        "opencode/deepseek-v4.1-flash-free": 872410,
+        "opencode/longcat-2.5-free": 198298,
+        "opencode/flint-40b-free": 324078,
+        "opencode/glm-5.3-flash-free": 0,
+        "opencode/minimax-m3.1-flash-free": 1235352
+      },
+      "is_project": false
+    }
+  ]
+}
